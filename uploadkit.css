@@ -1,5 +1,5 @@
 .uk-container {
-  background: #f9f9f9;
+  background: #f7f7f7;
   border: 1px solid #ccc;
   margin-bottom: 1em;
   padding: 1em;
@@ -23,6 +23,15 @@
 
 .uk-container > table, .uk-info {
   margin-bottom: 0.5em;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.uk-container > table a.close {
+  line-height: 12px;
+}
+
+.uk-container > table tr.error {
+  color: #b94a48;
 }
 
 .uk-size-column, .uk-progress-column {
@@ -39,17 +48,15 @@
 }
 
 .uk-info > h1 {
-  color: #c7c7c7;
-  font-size: 1.45em;
-  font-weight: 400;
+  color: #444;
+  font-size: 1.5em;
+  font-weight: 500;
   line-height: 1.5em;
-  text-shadow: #888 0 -1px 1px, #fff 0 1px 0;
 }
 
 .uk-info > h2 {
-  color: #555;
+  color: #444;
   font-size: 0.9em;
   font-weight: normal;
   line-height: 1.5em;
-  text-shadow: #fff 0 1px 0;
 }

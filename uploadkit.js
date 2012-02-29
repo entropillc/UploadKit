@@ -29,7 +29,7 @@ var UploadKit = function(input) {
   
   var $info = this.$info = $('<div class="uk-info"/>').html(infoHtml).appendTo($element);
   var $table = this.$table = $('<table class="table table-condensed"/>').appendTo($element).hide();
-  var $thead = this.$thead = $('<thead/>').html('<tr><th/><th>File Name</th><th>Size</th><th>Progress</th></tr>').appendTo($table);
+  var $thead = this.$thead = $('<thead/>').html('<tr><th/><th/><th>File Name</th><th>Size</th><th>Progress</th></tr>').appendTo($table);
   var $tbody = this.$tbody = $('<tbody/>').appendTo($table);
   var $browseButton = this.$browseButton = $('<a id="uk-browse-button-' + id + '" class="btn" href="#"/>').html('<i class="icon-file"/>Browse...').appendTo($element);
   var $uploadButton = this.$uploadButton = $('<a id="uk-upload-button-' + id + '" class="btn btn-primary" href="#"/>').html('<i class="icon-upload icon-white"/>Upload').appendTo($element).hide();
@@ -48,20 +48,32 @@ var UploadKit = function(input) {
     filters: []
   });
   
-  uploader.bind('Init', function(up, params) {
+  uploader.bind('Init', function(uploader, params) {
     console.log('Initialized UploadKit uploader with ' + params.runtime + ' runtime');
   });
   
-  uploader.bind('FilesAdded', function(up, files) {
+  uploader.bind('FilesAdded', function(uploader, files) {
     $info.hide();
     $table.show();
     $uploadButton.show();
     
-    for (var i = 0, length = files.length; i < length; i++) {
-      $tbody.append('<tr id="' + files[i].id + '">' +
+    var newFiles = files;
+    
+    if (!isMultiple) {
+      var existingFiles = uploader.files;
+      
+      if (existingFiles.length > 0) uploader.removeFile(existingFiles[0]);
+      if (files.length > 0) newFiles = [files[0]];
+      
+      $tbody.children('tr.error').remove();
+    }
+    
+    for (var i = 0, length = newFiles.length; i < length; i++) {
+      $tbody.append('<tr id="' + newFiles[i].id + '">' +
+        '<td><a class="close" title="Remove" href="#">&times;</a></td>' +
         '<td><i class="icon-file"/></td>' +
-        '<td>' + files[i].name + '</td>' +
-        '<td class="uk-size-column">' + plupload.formatSize(files[i].size) + '</td>' +
+        '<td>' + newFiles[i].name + '</td>' +
+        '<td class="uk-size-column">' + plupload.formatSize(newFiles[i].size) + '</td>' +
         '<td class="uk-progress-column">' +
           '<div class="progress progress-info progress-striped active">' +
             '<div class="bar"/>' +
@@ -71,13 +83,21 @@ var UploadKit = function(input) {
     }
   });
   
-  uploader.bind('UploadProgress', function(up, file) {
+  uploader.bind('FilesRemoved', function(uploader, files) {
+    var removedFiles = files;
+    
+    for (var i = 0, length = removedFiles.length; i < length; i++) {
+      $tbody.children('#' + removedFiles[i].id).remove();
+    }
+  });
+  
+  uploader.bind('UploadProgress', function(uploader, file) {
     var $tr = $tbody.find('#' + file.id);
     var $bar = $tr.find('.bar');
     $bar.css('width', file.percent + '%');
   });
   
-  uploader.bind('FileUploaded', function(up, file) {
+  uploader.bind('FileUploaded', function(uploader, file) {
     var $tr = $tbody.find('#' + file.id);
     var $progress = $tr.find('.progress');
     var $bar = $progress.find('.bar');
@@ -85,12 +105,43 @@ var UploadKit = function(input) {
     $bar.html('Done');
   });
   
-  uploader.bind('Error', function(up, err) {
-    var $tr = $tbody.find('#' + err.file.id);
-    var $progress = $tr.find('.progress');
-    var $bar = $progress.find('.bar');
-    $progress.removeClass('progress-info active').addClass('progress-danger');
-    $bar.html('Error');
+  uploader.bind('Error', function(uploader, error) {
+    var $tr = $tbody.find('#' + error.file.id).addClass('error');
+    var $td = $tr.children('.uk-progress-column');
+    var message;
+    
+    switch (error.code) {
+      case -600:
+        message = 'File size exceeds limit';
+        break;
+      default:
+        message = 'Unknown error occurred';
+        break;
+    }
+    
+    $td.html(message);
+  });
+  
+  $tbody.delegate('a.close', 'click', function(evt) {
+    var $this = $(this);
+    var $tr = $this.closest('tr');
+    var id = $tr.attr('id');
+    var file = uploader.getFile(id);
+    
+    if (uploader.files.length <= 1) {
+      $info.show();
+      $table.hide();
+      $browseButton.show();
+      $uploadButton.hide();
+    }
+    
+    if (file) {
+      uploader.removeFile(file);
+    } else {
+      $tr.remove();
+    }
+    
+    evt.preventDefault();
   });
   
   $uploadButton.bind('click', function(evt) {
