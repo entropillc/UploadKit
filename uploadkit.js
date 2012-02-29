@@ -5,6 +5,7 @@ var UploadKit = function(input) {
   }
   
   var $input = $(input);
+  var $form = $input.closest('form');
   
   var id = (Date['now']) ? Date.now() : +new Date(); // TODO: Verify this failover works in IE.
   var baseUrl = '';
@@ -89,6 +90,20 @@ var UploadKit = function(input) {
     for (var i = 0, length = removedFiles.length; i < length; i++) {
       $tbody.children('#' + removedFiles[i].id).remove();
     }
+  });
+  
+  uploader.bind('BeforeUpload', function(uploader, file) {
+    var multipartParams = {};
+    var fields = $form.serializeArray();
+    
+    for (var i = 0, length = fields.length; i < length; i++) {
+      var field = fields[i];
+      var fieldName = field.name;
+      
+      if (fieldName) multipartParams[fieldName] = field.value;
+    }
+    
+    uploader.settings.multipart_params = multipartParams;
   });
   
   uploader.bind('UploadProgress', function(uploader, file) {
