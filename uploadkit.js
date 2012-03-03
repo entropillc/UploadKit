@@ -1,3 +1,7 @@
+var UKEventType = {
+  UploadComplete: 'UKUploadComplete'
+};
+
 var UploadKit = function(input) {
   if (!window['plupload']) {
     console.error('Unable to initialize UploadKit; Plupload dependency not found');
@@ -19,8 +23,9 @@ var UploadKit = function(input) {
   var isMultiple = this.isMultiple = !!$input.attr('multiple');
   var uploadUrl = this.uploadUrl = $input.data('uploadUrl');
   var maxFileSize = this.maxFileSize = $input.data('maxFileSize') || this.maxFileSize;
+  var classes = ($input.attr('class') + '').replace(/uk-input/g, '');
   
-  var $element = this.$element = $input.wrap('<div id="uk-container-' + id + '" class="uk-container span6"/>').parent();
+  var $element = this.$element = $input.wrap('<div id="uk-container-' + id + '" class="uk-container ' + classes + '"/>').parent();
   $element.data('uploadKit', this);
   $input.remove();
   
@@ -71,8 +76,8 @@ var UploadKit = function(input) {
     
     for (var i = 0, length = newFiles.length; i < length; i++) {
       $tbody.append('<tr id="' + newFiles[i].id + '">' +
-        '<td><a class="close" title="Remove" href="#">&times;</a></td>' +
-        '<td><i class="icon-file"/></td>' +
+        '<td class="uk-close-column"><a class="close" title="Remove" href="#">&times;</a></td>' +
+        '<td class="uk-icon-column"><i class="icon-file"/></td>' +
         '<td>' + newFiles[i].name + '</td>' +
         '<td class="uk-size-column">' + plupload.formatSize(newFiles[i].size) + '</td>' +
         '<td class="uk-progress-column">' +
@@ -118,6 +123,13 @@ var UploadKit = function(input) {
     var $bar = $progress.find('.bar');
     $progress.removeClass('progress-info active').addClass('progress-success');
     $bar.html('Done');
+  });
+  
+  uploader.bind('UploadComplete', function(uploader, files) {
+    $element.trigger(jQuery.Event(UKEventType.UploadComplete, {
+      uploader: uploader,
+      files: files
+    }));
   });
   
   uploader.bind('Error', function(uploader, error) {
