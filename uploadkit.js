@@ -19,6 +19,7 @@ var UploadKit = function(input) {
     if (endIndex !== -1) baseUrl = (endIndex === 0) ? './' : src.substring(0, endIndex);
   });
   
+  var self = this;
   var name = this.name = $input.attr('name');  
   var isMultiple = this.isMultiple = !!$input.attr('multiple');
   var uploadUrl = this.uploadUrl = $input.data('uploadUrl');
@@ -27,7 +28,8 @@ var UploadKit = function(input) {
   
   var $element = this.$element = $input.wrap('<div id="uk-container-' + id + '" class="uk-container ' + classes + '"/>').parent();
   $element.data('uploadKit', this);
-  $input.remove();
+  $input.data('uploadKit', this);
+  $input.attr('disabled', true).hide();
   
   var infoHtml = (isMultiple) ?
     '<h1>No Files Selected</h1><h2>Browse for files to upload or drag and drop them here</h2>' :
@@ -54,6 +56,8 @@ var UploadKit = function(input) {
     filters: []
   });
   
+  var responses = this.responses = [];
+  
   uploader.bind('Init', function(uploader, params) {
     console.log('Initialized UploadKit uploader with ' + params.runtime + ' runtime');
   });
@@ -61,7 +65,7 @@ var UploadKit = function(input) {
   uploader.bind('FilesAdded', function(uploader, files) {
     $info.hide();
     $table.show();
-    $uploadButton.show();
+    $uploadButton.removeClass('disabled').show();
     
     var newFiles = files;
     
@@ -117,18 +121,22 @@ var UploadKit = function(input) {
     $bar.css('width', file.percent + '%');
   });
   
-  uploader.bind('FileUploaded', function(uploader, file) {
+  uploader.bind('FileUploaded', function(uploader, file, response) {
     var $tr = $tbody.find('#' + file.id);
     var $progress = $tr.find('.progress');
     var $bar = $progress.find('.bar');
+    
     $progress.removeClass('progress-info active').addClass('progress-success');
     $bar.html('Done');
+    
+    responses.push(response);
   });
   
   uploader.bind('UploadComplete', function(uploader, files) {
     $element.trigger(jQuery.Event(UKEventType.UploadComplete, {
       uploader: uploader,
-      files: files
+      files: files,
+      responses: responses
     }));
   });
   
@@ -147,6 +155,8 @@ var UploadKit = function(input) {
     }
     
     $td.html(message);
+    
+    if (uploader.files.length === 0) $uploadButton.addClass('disabled');
   });
   
   $tbody.delegate('a.close', 'click', function(evt) {
@@ -172,6 +182,12 @@ var UploadKit = function(input) {
   });
   
   $uploadButton.bind('click', function(evt) {
+    if ($uploadButton.hasClass('disabled')) return false;
+    
+    $uploadButton.addClass('disabled');
+    
+    responses = self.responses = [];
+    
     uploader.start();
     evt.preventDefault();
   });
@@ -191,7 +207,8 @@ UploadKit.prototype = {
   isMultiple: false,
   uploadUrl: null,
   maxFileSize: '10mb',
-  uploader: null
+  uploader: null,
+  responses: null
 };
 
 $(function() {
