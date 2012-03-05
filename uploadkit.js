@@ -29,7 +29,7 @@ var UploadKit = function(input) {
   var $element = this.$element = $input.wrap('<div id="uk-container-' + id + '" class="uk-container ' + classes + '"/>').parent();
   $element.data('uploadKit', this);
   $input.data('uploadKit', this);
-  $input.attr('disabled', true).hide();
+  $input.attr('disabled', true);
   
   var infoHtml = (isMultiple) ?
     '<h1>No Files Selected</h1><h2>Browse for files to upload or drag and drop them here</h2>' :

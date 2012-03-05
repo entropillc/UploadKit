@@ -1,3 +1,7 @@
+input.uk-input, form input.uk-input {
+  display: none;
+}
+
 .uk-container {
   background: #f7f7f7;
   border: 1px solid #ccc;
