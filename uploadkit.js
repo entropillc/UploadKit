@@ -15,7 +15,7 @@ var UploadKit = function(input) {
   var baseUrl = '';
   $('script').each(function(index, element) {
     var src = $(element).attr('src');
-    var endIndex = src.indexOf('uploadkit.js');
+    var endIndex = (src) ? src.indexOf('uploadkit.js') : -1;
     if (endIndex !== -1) baseUrl = (endIndex === 0) ? './' : src.substring(0, endIndex);
   });
   
