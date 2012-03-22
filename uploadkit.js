@@ -1,3 +1,8 @@
+var UKEventType = {
+  FileUploaded: 'UKFileUploaded',
+  UploadError: 'UKUploadError'
+};
+
 var UploadKit = function(input) {
   if (!window['plupload']) {
     console.error('Unable to initialize UploadKit; Plupload dependency not found');
@@ -10,7 +15,7 @@ var UploadKit = function(input) {
   var id = (Date['now']) ? Date.now() : +new Date(); // TODO: Verify this failover works in IE.
   var baseUrl = '';
   $('script').each(function(index, element) {
-    var src = $(element).attr('src');
+    var src = $(element).attr('src') || '';
     var endIndex = src.indexOf('uploadkit.js');
     if (endIndex !== -1) baseUrl = (endIndex === 0) ? './' : src.substring(0, endIndex);
   });
@@ -22,7 +27,7 @@ var UploadKit = function(input) {
   
   var $element = this.$element = $input.wrap('<div id="uk-container-' + id + '" class="uk-container span6"/>').parent();
   $element.data('uploadKit', this);
-  $input.remove();
+  $input.hide();
   
   var infoHtml = (isMultiple) ?
     '<h1>No Files Selected</h1><h2>Browse for files to upload or drag and drop them here</h2>' :
@@ -112,12 +117,18 @@ var UploadKit = function(input) {
     $bar.css('width', file.percent + '%');
   });
   
-  uploader.bind('FileUploaded', function(uploader, file) {
+  uploader.bind('FileUploaded', function(uploader, file, response) {
     var $tr = $tbody.find('#' + file.id);
     var $progress = $tr.find('.progress');
     var $bar = $progress.find('.bar');
     $progress.removeClass('progress-info active').addClass('progress-success');
     $bar.html('Done');
+    
+    $input.trigger($.Event(UKEventType.FileUploaded, {
+      uploader: uploader,
+      file: file,
+      response: response
+    }));
   });
   
   uploader.bind('Error', function(uploader, error) {
@@ -135,6 +146,11 @@ var UploadKit = function(input) {
     }
     
     $td.html(message);
+    
+    $input.trigger($.Event(UKEventType.UploadError, {
+      uploader: uploader,
+      error: error
+    }));
   });
   
   $tbody.delegate('a.close', 'click', function(evt) {
