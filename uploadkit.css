@@ -1,3 +1,7 @@
+input.uk-input, form input.uk-input {
+  display: none;
+}
+
 .uk-container {
   background: #f7f7f7;
   border: 1px solid #ccc;
@@ -21,6 +25,10 @@
   margin-right: 0.25em;
 }
 
+.uk-container > .btn-primary {
+  color: #fff;
+}
+
 .uk-container > table, .uk-info {
   margin-bottom: 0.5em;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -32,6 +40,10 @@
 
 .uk-container > table tr.error {
   color: #b94a48;
+}
+
+.uk-close-column, .uk-icon-column {
+  width: 1em;
 }
 
 .uk-size-column, .uk-progress-column {

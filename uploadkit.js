@@ -1,5 +1,6 @@
 var UKEventType = {
   FileUploaded: 'UKFileUploaded',
+  UploadComplete: 'UKUploadComplete',
   UploadError: 'UKUploadError'
 };
 
@@ -20,14 +21,17 @@ var UploadKit = function(input) {
     if (endIndex !== -1) baseUrl = (endIndex === 0) ? './' : src.substring(0, endIndex);
   });
   
+  var self = this;
   var name = this.name = $input.attr('name');  
   var isMultiple = this.isMultiple = !!$input.attr('multiple');
   var uploadUrl = this.uploadUrl = $input.data('uploadUrl');
   var maxFileSize = this.maxFileSize = $input.data('maxFileSize') || this.maxFileSize;
+  var classes = ($input.attr('class') + '').replace(/uk-input/g, '');
   
-  var $element = this.$element = $input.wrap('<div id="uk-container-' + id + '" class="uk-container span6"/>').parent();
+  var $element = this.$element = $input.wrap('<div id="uk-container-' + id + '" class="uk-container ' + classes + '"/>').parent();
   $element.data('uploadKit', this);
-  $input.hide();
+  $input.data('uploadKit', this);
+  $input.attr('disabled', true);
   
   var infoHtml = (isMultiple) ?
     '<h1>No Files Selected</h1><h2>Browse for files to upload or drag and drop them here</h2>' :
@@ -54,6 +58,8 @@ var UploadKit = function(input) {
     filters: []
   });
   
+  var responses = this.responses = [];
+  
   uploader.bind('Init', function(uploader, params) {
     console.log('Initialized UploadKit uploader with ' + params.runtime + ' runtime');
   });
@@ -61,7 +67,7 @@ var UploadKit = function(input) {
   uploader.bind('FilesAdded', function(uploader, files) {
     $info.hide();
     $table.show();
-    $uploadButton.show();
+    $uploadButton.removeClass('disabled').show();
     
     var newFiles = files;
     
@@ -76,8 +82,8 @@ var UploadKit = function(input) {
     
     for (var i = 0, length = newFiles.length; i < length; i++) {
       $tbody.append('<tr id="' + newFiles[i].id + '">' +
-        '<td><a class="close" title="Remove" href="#">&times;</a></td>' +
-        '<td><i class="icon-file"/></td>' +
+        '<td class="uk-close-column"><a class="close" title="Remove" href="#">&times;</a></td>' +
+        '<td class="uk-icon-column"><i class="icon-file"/></td>' +
         '<td>' + newFiles[i].name + '</td>' +
         '<td class="uk-size-column">' + plupload.formatSize(newFiles[i].size) + '</td>' +
         '<td class="uk-progress-column">' +
@@ -121,13 +127,24 @@ var UploadKit = function(input) {
     var $tr = $tbody.find('#' + file.id);
     var $progress = $tr.find('.progress');
     var $bar = $progress.find('.bar');
+    
     $progress.removeClass('progress-info active').addClass('progress-success');
     $bar.html('Done');
+    
+    responses.push(response);
     
     $input.trigger($.Event(UKEventType.FileUploaded, {
       uploader: uploader,
       file: file,
       response: response
+    }));
+  });
+  
+  uploader.bind('UploadComplete', function(uploader, files) {
+    $input.trigger($.Event(UKEventType.UploadComplete, {
+      uploader: uploader,
+      files: files,
+      responses: responses
     }));
   });
   
@@ -146,6 +163,8 @@ var UploadKit = function(input) {
     }
     
     $td.html(message);
+    
+    if (uploader.files.length === 0) $uploadButton.addClass('disabled');
     
     $input.trigger($.Event(UKEventType.UploadError, {
       uploader: uploader,
@@ -176,6 +195,12 @@ var UploadKit = function(input) {
   });
   
   $uploadButton.bind('click', function(evt) {
+    if ($uploadButton.hasClass('disabled')) return false;
+    
+    $uploadButton.addClass('disabled');
+    
+    responses = self.responses = [];
+    
     uploader.start();
     evt.preventDefault();
   });
@@ -195,7 +220,8 @@ UploadKit.prototype = {
   isMultiple: false,
   uploadUrl: null,
   maxFileSize: '10mb',
-  uploader: null
+  uploader: null,
+  responses: null
 };
 
 $(function() {
