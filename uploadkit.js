@@ -24,7 +24,7 @@ var UploadKit = function(input) {
   var self = this;
   var name = this.name = $input.attr('name');  
   var isMultiple = this.isMultiple = !!$input.attr('multiple');
-  var uploadUrl = this.uploadUrl = $input.data('uploadUrl');
+  var uploadUrl = this.uploadUrl = $input.data('uploadUrl') || $form.attr('action');
   var maxFileSize = this.maxFileSize = $input.data('maxFileSize') || this.maxFileSize;
   var classes = ($input.attr('class') + '').replace(/uk-input/g, '');
   
