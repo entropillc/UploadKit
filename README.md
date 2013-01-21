@@ -23,6 +23,11 @@ Then, include the JavaScript with jQuery:
 
 See the included demo page for usage.
 
+Demo using jsfiddle to show single and multi upload:
+
+http://jsfiddle.net/9nW4r/5/
+
+
 License
 ---------------------
 
