@@ -1,4 +1,5 @@
 var UKEventType = {
+  BeforeUpload: 'UKBeforeUpload',
   FileUploaded: 'UKFileUploaded',
   UploadComplete: 'UKUploadComplete',
   UploadError: 'UKUploadError'
@@ -115,6 +116,9 @@ var UploadKit = function(input) {
     }
     
     uploader.settings.multipart_params = multipartParams;
+    $input.trigger($.Event(UKEventType.BeforeUpload, {
+      uploader: uploader
+    }));    
   });
   
   uploader.bind('UploadProgress', function(uploader, file) {
